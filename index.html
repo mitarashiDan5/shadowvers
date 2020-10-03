@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta charset="UTF-8">
+	<title>Draw simulator</title>
+	<link rel="stylesheet" href="draw_simu.css">
+	<script src="draw_simu.js"></script>
+</head>
+
+<body>
+
+	<!-- デバッグ機能
+	<button onclick="debug();">dbg</button>
+
+	<p id="dbg_val_0">デバッグ変数0 = ?</p>
+	<p id="dbg_val_1">デバッグ変数1 = ?</p>
+	<p id="dbg_val_2">デバッグ変数2 = ?</p>
+	<p id="dbg_val_3">デバッグ変数3 = ?</p>
+	<p id="dbg_val_4">デバッグ変数4 = ?</p>
+	<p id="dbg_val_5">デバッグ変数5 = ?</p>
+	<p id="dbg_val_6">デバッグ変数6 = ?</p>
+	<p id="dbg_val_7">デバッグ変数7 = ?</p>
+	<p id="dbg_val_8">デバッグ変数8 = ?</p>
+	<p id="dbg_val_9">デバッグ変数9 = ?</p>
+
+	<button onclick="simulation_start();">Simulation start</button>
+	-->
+
+
+
+	<!--	タイトルヘッダ	-->
+	<h1>Draw simulator</h1>
+
+
+
+	<!--	↓↓　ゲームルール	-->
+	<table border="!" >
+
+		<tr>
+			<th>Game type</th>
+			<th>Total deck</th>
+			<th>Opening hand</th>
+			<th>1T's draw(1st)</th>
+			<th>1T's draw(2nd)</th>
+			<th>Mulligan type</th>
+		</tr>
+
+		<tr>
+			<td>
+				<select id="game_type">
+					<option value="none">Shadowverse</option>		<!--	一旦、shadowvers前提で、初期値を入れている	-->
+				</select>
+			</td>
+			<td><input type="text" id="total_deck"     size="2" value=40></td>
+			<td><input type="text" id="Ini_hand"       size="1" value=3 ></td>
+			<td><input type="text" id="first_1T_draw"  size="1" value=1 ></td>
+			<td><input type="text" id="second_1T_draw" size="1" value=2 ></td>
+			<td>
+				<select id="mulligan_type">
+					<option value="select_draw_bef_ret">    Selectable & draw before return (Shadowvers) </option>
+					<option value="select_draw_aft_ret">    Selectable & draw after return (未実装)       </option>
+					<option value="no_select_draw_bef_ret"> Not selectable & draw before return (未実装)  </option>
+					<option value="no_select_draw_aft_ret"> Not selectable & draw after return (未実装)   </option>
+					<option value="none">                   None                                         </option>
+				</select>
+			</td>
+		</tr>
+	</table>
+	<!--	↑↑　ゲームルール	-->
+
+
+
+
+
+
+
+	<!--	デッキリスト	-->
+	<p>■List of Deck & Plays	</p>
+
+
+	<!-- 折り畳み展開ポインタ -->
+	<div onclick="obj=document.getElementById('open1').style; obj.display=(obj.display=='none')?'block':'none';">
+	<a style="cursor:pointer;">▼ ditail (Click here)</a> <!-- 詳細説明 -->
+	</div>
+	<!--// 折り畳み展開ポインタ -->
+	
+	<!-- 折り畳まれ部分 -->
+	<div id="open1" style="display:none;clear:both;">
+	
+		<p>Card name: xxxxxx</p>
+		<p>Deck in  : xxxxxx</p>
+		<p>Ref. No  : xxxxxx</p>
+
+	</div>
+	<!--// 折り畳まれ部分 -->
+
+
+
+	<!-- Marigan 1 を 全キープにする(マリガンなしにする) -->
+	<button onclick="all_keep();">Change Marigan1 to all keep</button>
+
+
+
+	<!-- //ボタン押下で、マリガンとプレイ数のテーブル を調整したい
+	<button onclick="create_list_tbl();">Create List</button>
+	-->
+
+	<script type="text/javascript">
+		
+
+		// 画面から入力したい...(draw_simu.jsと同期取れてない)
+		const mariganPettern = 5;	// マリガンのパターン数
+		const playPattern    = 10;	// プレイのパターン数
+
+
+
+		// Table
+		document.write("<table border='!' id='input_tbl'>");
+
+		//項目グループ
+		document.write("<tr>");
+			//Basic
+			document.write("<th class='deck_head1 basic_head1' colspan='4'>Basic</th>");
+
+			//Effect
+			document.write("<th class='deck_head1' colspan='5'>Effect</th>");
+
+			//Marigan
+			for(var i=0; i<mariganPettern; i++)
+			{
+			document.write("<th class='deck_head1' colspan='3'> <input class='marigan_enable' type='checkbox' checked> Marigan ",i+1,"</th>");
+			}
+
+			//Play
+			for(var j=0; j<playPattern; j++)
+			{				
+			document.write("<th class='deck_head1' colspan='10'> <input class='play_enable' type='checkbox' checked> Play ",j+1," (-<input class='total_minus' type='checkbox'>)</th>");
+			}
+
+
+		document.write("</tr>");
+		
+		//項目
+		document.write("<tr>");
+			//Basic
+			document.write("<th class='deck_head2 basic_head1' >No.</th>");
+			document.write("<th class='deck_head2 basic_head2' >Card name</th>");
+			document.write("<th class='deck_head2 basic_head3' ><p style='width:5em;'>Deck in</p></th>");
+			document.write("<th class='deck_head2 basic_head4' >Ref.No</th>");
+			
+			//Effect
+			document.write("<th class='deck_head2' >type</th>");
+			document.write("<th class='deck_head2' >num</th>");
+			document.write("<th class='deck_head2' >choice</th>");
+			document.write("<th class='deck_head2' >filter(card no)</th>");
+			document.write("<th class='deck_head2' >timing</th>");
+
+			//Marigan
+			for(var k=0; k<mariganPettern; k++){
+			document.write("<th class='deck_head2' >condition</th>");
+			document.write("<th class='deck_head2' >in Hand</th>");
+			document.write("<th class='deck_head2' >keep</th>");
+			}
+			
+			//Play
+			for(var m=0; m<playPattern; m++){				
+			document.write("<th class='deck_head2' >1T</th>");
+			document.write("<th class='deck_head2' >2T</th>");
+			document.write("<th class='deck_head2' >3T</th>");
+			document.write("<th class='deck_head2' >4T</th>");
+			document.write("<th class='deck_head2' >5T</th>");
+			document.write("<th class='deck_head2' >6T</th>");
+			document.write("<th class='deck_head2' >7T</th>");
+			document.write("<th class='deck_head2' >8T</th>");
+			document.write("<th class='deck_head2' >9T</th>");
+			document.write("<th class='deck_head2' >10T</th>");
+			}
+			
+		document.write("</tr>");
+
+			//カードリスト
+			for (var n=0; n < 20; n++) {		// Card No. 1-20
+
+				document.write("<tr>");
+
+					// === 基本データ ===============================================================================================================
+					//Basic
+					// No.
+					document.write("<th class='basic_head1'>",n+1,"</td>");
+					// カードネーム
+					document.write("<th class='basic_head2'><input class='cd_name' type='text' value='Card' size='25'></td>");
+					// デッキへの投入枚数
+					document.write("<th class='basic_head3'><input class='cd_deckin' type='number' value='0' min='0' style='width:3em;'></td>");
+					// ２つ目以上の効果を使用する際、別のカードネームを定義し、デッキへの投入枚数=0にし、１つ目の効果を定義したカード１のNo.をこの項目に設定する
+					document.write("<th class='basic_head4'><input class='cd_sameno' type='number' value='0' min='0' style='width:2.5em;'></td>");
+
+					// === 効果(カードの枚数増減のみ) ===============================================================================================================
+					//Effect
+					// 効果：種類
+					document.write("<td><select class='cd_eff'>");
+						document.write("<option value='none'>-</option>");
+						document.write("<option value='draw'>Draw</option>");
+						document.write("<option value='sarch_from_deck'>Sarch from deck(eachのみ実装)</option>");
+						document.write("<option value='play_from_deck'>Play from deck(eachのみ実装)</option>");
+						document.write("<option value='add_to_hand'>Add to hand(未実装)</option>");
+						document.write("<option value='add_to_deck'>Add to deck(未実装)</option>");
+						document.write("<option value='discard_hand'>Discard hand(未実装)</option>");
+						document.write("<option value='return_hand_to_deck'>Return hand to deck(未実装)</option>");
+						document.write("<option value='discard_deck'>Discard deck(未実装)</option>");
+					document.write("</select></td>");
+					// 効果：枚数
+					document.write("<td><input class='cd_e_num'    type='number' value='0' min='0' style='width:2.5em;'></td>");
+					// 効果：ランダム or 任意
+					document.write("<td><select class='cd_e_choice'>");
+						document.write("<option value='none'>-</option>");
+						document.write("<option value='each'>Each</option>");
+						document.write("<option value='random'>Random</option>");
+					document.write("</select></td>");
+					// 効果：任意の場合のカードNo.選択
+					document.write("<td><p style='width:13em;'>");
+						document.write("<input class='cd_e_no1' type='number' value='0' min='0' style='width:2.5em;'>");
+						document.write("<input class='cd_e_no2' type='number' value='0' min='0' style='width:2.5em;'>");
+						document.write("<input class='cd_e_no3' type='number' value='0' min='0' style='width:2.5em;'>");
+						document.write("<input class='cd_e_no4' type='number' value='0' min='0' style='width:2.5em;'>");
+						document.write("<input class='cd_e_no5' type='number' value='0' min='0' style='width:2.5em;'>");
+					document.write("</p></td>");
+					// 効果：カードの効果の発動遅延T
+					document.write("<td><input class='cd_e_timing' type='number' value='0' min='0' style='width:2.5em;'></td>");
+
+					// === マリガン ===============================================================================================================
+					//Marigan
+					// マリガン：キープ判定する際の、固有の条件番号
+					for(var p=0; p<mariganPettern; p++){
+					document.write("<td><input class='cd_mul_condition' type='number' value='0' min='0' style='width:2.5em;'></td>");
+					// マリガン：キープ判定する際の、手札に引き込んでいる条件
+					document.write("<td><p  style='width:6em;'>");
+						document.write("<input class='cd_mul_a_in_hand_l' type='number' value='1' min='0' style='width:2.5em;'>");
+						document.write("~");
+						document.write("<input class='cd_mul_a_in_hand_h' type='number' value='3' min='0' style='width:2.5em;'>");
+					document.write("</p></td>");
+					// マリガン：キープ判定true時の、最大キープ枚数
+					document.write("<td><input class='cd_mul_a_keep'    type='number' value='0' min='0' style='width:2.5em;'></td>");
+					}
+
+					// === 各Tのプレイ枚数(1-10T) ===============================================================================================================
+					//Play
+					for(var q=0; q<playPattern; q++){				
+					document.write("<td><input class='cd_1T' type='number' value='0' min='-9' style='width:2.5em;'></td>");
+					document.write("<td><input class='cd_2T' type='number' value='0' min='-9' style='width:2.5em;'></td>");
+					document.write("<td><input class='cd_3T' type='number' value='0' min='-9' style='width:2.5em;'></td>");
+					document.write("<td><input class='cd_4T' type='number' value='0' min='-9' style='width:2.5em;'></td>");
+					document.write("<td><input class='cd_5T' type='number' value='0' min='-9' style='width:2.5em;'></td>");
+					document.write("<td><input class='cd_6T' type='number' value='0' min='-9' style='width:2.5em;'></td>");
+					document.write("<td><input class='cd_7T' type='number' value='0' min='-9' style='width:2.5em;'></td>");
+					document.write("<td><input class='cd_8T' type='number' value='0' min='-9' style='width:2.5em;'></td>");
+					document.write("<td><input class='cd_9T' type='number' value='0' min='-9' style='width:2.5em;'></td>");
+					document.write("<td><input class='cd_10T' type='number' value='0' min='-9' style='width:2.5em;'></td>");
+					}
+
+				document.write("</tr>");
+			}
+
+		document.write("</table>");
+
+	</script>
+	<!--	デッキリスト	-->
+
+
+
+
+	<!--	Sampleデッキリスト & プレイ数 を選択し、反映する	-->
+	<p>	....Set Sample lists:
+		<select id="set_list" onchange="set_list()">
+			<option value="default"> ----</option>
+			<option value="senpuku"> (Shadowvers) senpuku</option>
+			<option value="sample1"> (Shadowvers) sample1</option>
+			<option value="gaiant"> (Shadowvers) gaiant</option>
+		</select>
+	</p>
+
+	
+	<!-- シミュレーション回数の選択 -->
+	<p>
+		...Repetition of simulation:
+		<select id="repe_simu">
+			<option value=10000>	1万(速い)</option>
+			<option value=1>		1</option>
+			<option value=10>		10</option>
+			<option value=100>		100</option>
+			<option value=1000>		1000</option>
+			<option value=100000>	10万(1秒)</option>
+			<option value=1000000>	100万(10秒_0.1%まで精度ありそう)</option>
+			<option value=10000000>	1000万(落ちそう)</option>
+		</select>
+	</p>
+
+
+	<!-- シミュレーションを実行する -->
+	<button onclick="simulation_start_1st2nd();">Simulation start</button>
+
+
+
+
+	<br>
+	<p>■Result of simulation</p>
+
+	<!-- 結果テーブルリセット -->
+	<button onclick="reset_result();">Reset simulation result</button>
+
+
+	<!--
+	<p id="total_1st">Total(1st) 0.0 %</p>
+	<p id="total_2nd">Total(2nd) 0.0 %</p>
+	-->
+
+	<!-- 結果テーブル	-->
+	<table border="!">
+		<!-- ヘッダー	-->
+		<tr>
+			<th class='result_head'>Case No.</th>
+			<th class='result_head'>1st(%)</th>
+			<th class='result_head'>2nd(%)</th>
+
+			<th class='result_head'>Marigan Ptn</th>
+			<th class='result_head'>+/-</th>
+			<th class='result_head'>Play Ptn</th>
+
+			<th class='result_head'>1T</th>
+			<th class='result_head'>2T</th>
+			<th class='result_head'>3T</th>
+			<th class='result_head'>4T</th>
+			<th class='result_head'>5T</th>
+			<th class='result_head'>6T</th>
+			<th class='result_head'>7T</th>
+			<th class='result_head'>8T</th>
+			<th class='result_head'>9T</th>
+			<th class='result_head'>10T</th>
+
+			<th class='result_head'>Simulation done</th>
+			<th class='result_head'>Note</th>
+		</tr>
+
+		<!-- 結果リスト	-->
+		<script type="text/javascript">
+			for (var i = 1; i <= 100; i++) {		// case No. 1-100
+				document.write("<tr>");
+					document.write("<td><p class='sm_case_no'>-</p></td>");
+					document.write("<td><p class='sm_result_1st'>0.00</p></td>");
+					document.write("<td><p class='sm_result_2nd'>0.00</p></td>");
+
+					document.write("<td><p class='sm_marigan_no'></p></td>");
+					document.write("<td><p class='sm_plus_minus'></p></td>");
+					document.write("<td><p class='sm_play_no'></p></td>");
+
+					document.write("<td><p class='sm_1T'>-----</p></td>");
+					document.write("<td><p class='sm_2T'>-----</p></td>");
+					document.write("<td><p class='sm_3T'>-----</p></td>");
+					document.write("<td><p class='sm_4T'>-----</p></td>");
+					document.write("<td><p class='sm_5T'>-----</p></td>");
+					document.write("<td><p class='sm_6T'>-----</p></td>");
+					document.write("<td><p class='sm_7T'>-----</p></td>");
+					document.write("<td><p class='sm_8T'>-----</p></td>");
+					document.write("<td><p class='sm_9T'>-----</p></td>");
+					document.write("<td><p class='sm_10T'>-----</p></td>");
+
+					document.write("<td><p class='sm_done'></p></td>");
+					document.write("<td><input class='sm_pattern' type='text' size='20'></td>");
+
+				document.write("</tr>");
+			}
+		</script>
+				
+	</table>
+
+</body>
+</html>
+
+
+<!-- 拡張メモ
+
+・強いデッキは、理想ムーブの成功確率が高いはず
+・サンプルリストに、シミュレート用の〜枚積みデッキを作る
+・デッキ総数の整合性チェック、変な値でスタートすると、フリーズする
+・デッキリストの例の入力機能
+・デッキリストの保存機能(PHP)
+・用語はshadowvers portal の英語verで確認する
+・日本語/英語の切り替え可能にする
+・とりあえず、google翻訳で、日本語変換可能にする
+・単語の説明、使い方の説明を下に記述
+・カードゲーム毎に、初期値を設定できるようにする
+・シミュレーションを強制終了できるようにする
+・結果のリセットをできるようにする
+・先攻・後攻のマリガンを別々にする？
+・結果のリセット機能
+・結果欄を無限に拡張していく機能
+・結果に基づいてグラフ化する機能
+・~をx枚、持ってないケースを追加 (プレイ数 -x)で表現->ドロー系の分岐計算可能
+・遅延して発動する効果のタイミングが微妙(今のだと、ターン終了時になる)
+・無駄なループをbreakで抜けて、速度を早める
+・グラフ化する時は、最低100万回シミュレートはしたい
+
+-->

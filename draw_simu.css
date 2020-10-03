@@ -1,0 +1,82 @@
+body {
+	background-color: #eeffee;
+}
+
+h1 {
+	font-size: 50pt;	
+	color: black;
+	background-color: greenyellow;
+
+}
+
+
+
+table {
+	border-collapse: collapse;
+	border: solid 2px orange;/*表全体を線で囲う*/
+}
+
+table th {
+	border: dashed 1px orange;	/*破線 1px オレンジ*/
+	color: #FF9800;/*文字色*/
+	background: #fff5e5;/*背景色*/
+
+/*
+	color: rgb(180, 180, 180);
+*/
+
+
+}
+table td {
+	border: dashed 1px orange;	/*破線 1px オレンジ*/
+}
+
+
+/* デッキリストの上部ヘッダも固定したいが、左端ヘッダと共存がうまくできなため、保留 */
+/*.deck_head1{
+	position: sticky;	/*画面外に見切れず、留める */
+/*	top: 0px;				/* 上の端に留める*/
+/*}
+*/
+
+/*.deck_head2{
+	position: sticky;	/*画面外に見切れず、留める */
+/*	top: 26px;				/* 上の端に留める*/
+/*}
+*/
+
+
+/*画面外に見切れず、留める */
+/* 左の端に留める*/
+.basic_head1{
+	position: sticky;
+	left: 0px;				
+}
+
+.basic_head2{
+	position: sticky;
+	left: 32px;	
+	z-index:100；
+}
+
+.basic_head3{
+	position: sticky;
+	left: 153px;
+}
+
+.basic_head4{
+	position: sticky;
+	left: 200px;
+}
+
+
+/* 結果テーブル */
+.result_head{
+	position: sticky;
+	top: 0px;
+}
+
+
+
+
+/* 画面に留める際に、線も留めたい...(できてない) */
